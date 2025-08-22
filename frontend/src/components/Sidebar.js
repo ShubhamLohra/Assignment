@@ -1,8 +1,18 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Get user info from localStorage
+    const userInfo = localStorage.getItem('user');
+    if (userInfo) {
+      setUser(JSON.parse(userInfo));
+    }
+  }, []);
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
@@ -11,6 +21,15 @@ const Sidebar = () => {
 
   const isActive = (href) => {
     return location.pathname === href;
+  };
+
+  const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    // Redirect to login
+    navigate('/login');
   };
 
   return (
@@ -46,15 +65,32 @@ const Sidebar = () => {
 
       {/* User Section - Fixed at Bottom */}
       <div className="p-6 border-t border-gray-200 bg-white">
-        <div className="flex items-center space-x-4 px-4 py-3">
+        <div className="flex items-center space-x-4 px-4 py-3 mb-4">
           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-            <span className="text-sm font-semibold text-blue-700">A</span>
+            <span className="text-sm font-semibold text-blue-700">
+              {user ? user.fullName?.charAt(0) || user.username?.charAt(0) || 'U' : 'U'}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">Admin User</p>
-            <p className="text-xs text-gray-500 truncate">admin@aicrm.com</p>
+            <p className="text-sm font-semibold text-gray-900 truncate">
+              {user ? user.fullName || 'Unknown User' : 'Unknown User'}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              {user ? user.email || user.username || 'No email' : 'No email'}
+            </p>
+            <p className="text-xs text-blue-600 font-medium">
+              {user ? user.role || 'AGENT' : 'AGENT'}
+            </p>
           </div>
         </div>
+        
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-full px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors duration-200 text-sm font-medium"
+        >
+          Sign Out
+        </button>
       </div>
     </div>
   );

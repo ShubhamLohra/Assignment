@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS leads (
     service_id BIGINT,
     budget DECIMAL(10,2),
     event_date DATE,
-    status ENUM('NEW', 'CONTACTED', 'QUALIFIED', 'LOST') DEFAULT 'NEW',
+    status ENUM('NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'CLOSED_WON', 'LOST') DEFAULT 'NEW',
     source ENUM('INSTAGRAM', 'WHATSAPP', 'WEBSITE', 'REFERRAL', 'OTHER') DEFAULT 'OTHER',
     notes TEXT,
     assigned_to BIGINT,

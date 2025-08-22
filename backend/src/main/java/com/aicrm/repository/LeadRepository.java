@@ -10,6 +10,10 @@ import java.util.List;
 @Repository
 public interface LeadRepository extends JpaRepository<Lead, Long> {
     
+    @Query("SELECT l, s FROM Lead l LEFT JOIN l.service s ORDER BY l.createdAt DESC")
+    List<Object[]> findAllWithServiceByOrderByCreatedAtDesc();
+    
+    // Fallback method
     List<Lead> findAllByOrderByCreatedAtDesc();
     
     @Query("SELECT COUNT(l) FROM Lead l WHERE l.status = 'NEW'")

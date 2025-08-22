@@ -18,16 +18,25 @@ class ApiService {
       ...options,
     };
 
+    console.log('API Service - Making request to:', url);
+    console.log('API Service - Request config:', config);
+
     try {
       const response = await fetch(url, config);
+      console.log('API Service - Response status:', response.status);
+      console.log('API Service - Response headers:', response.headers);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Service - Response not OK:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log('API Service - Response data:', data);
+      return data;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('API Service - Request failed:', error);
       throw error;
     }
   }
@@ -49,10 +58,18 @@ class ApiService {
   }
 
   async updateLead(id, leadData) {
-    return this.request(`/leads/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(leadData),
-    });
+    console.log('API Service - updateLead called with:', { id, leadData });
+    try {
+      const response = await this.request(`/leads/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(leadData),
+      });
+      console.log('API Service - updateLead response:', response);
+      return response;
+    } catch (error) {
+      console.error('API Service - updateLead error:', error);
+      throw error;
+    }
   }
 
   async deleteLead(id) {
@@ -106,6 +123,30 @@ class ApiService {
   async generateFollowUp(dealId) {
     return this.request(`/ai/generate-followup/${dealId}`, {
       method: 'POST',
+    });
+  }
+
+  // Authentication methods
+  async login(credentials) {
+    return this.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  }
+
+  async signup(userData) {
+    return this.request('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async getProfile() {
+    const token = localStorage.getItem('token');
+    return this.request('/auth/profile', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
   }
 }

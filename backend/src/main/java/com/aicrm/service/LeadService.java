@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,7 +20,28 @@ public class LeadService {
     private ServiceRepository serviceRepository;
     
     public List<Lead> getAllLeads() {
-        return leadRepository.findAllByOrderByCreatedAtDesc();
+        try {
+            // Try the complex query first
+            List<Object[]> results = leadRepository.findAllWithServiceByOrderByCreatedAtDesc();
+            List<Lead> leads = new ArrayList<>();
+            
+            for (Object[] result : results) {
+                Lead lead = (Lead) result[0];
+                com.aicrm.entity.Service service = (com.aicrm.entity.Service) result[1];
+                
+                // Set the service directly to avoid lazy loading issues
+                if (service != null) {
+                    lead.setService(service);
+                }
+                
+                leads.add(lead);
+            }
+            
+            return leads;
+        } catch (Exception e) {
+            // Fallback to simple query if complex query fails
+            return leadRepository.findAllByOrderByCreatedAtDesc();
+        }
     }
     
     public Lead createLead(Lead lead) {
@@ -50,15 +72,35 @@ public class LeadService {
             }
         }
         
-        lead.setName(leadDetails.getName());
-        lead.setEmail(leadDetails.getEmail());
-        lead.setPhone(leadDetails.getPhone());
-        lead.setCity(leadDetails.getCity());
-        lead.setService(leadDetails.getService());
-        lead.setBudget(leadDetails.getBudget());
-        lead.setStatus(leadDetails.getStatus());
-        lead.setSource(leadDetails.getSource());
-        lead.setNotes(leadDetails.getNotes());
+        // Only update fields that are provided (not null)
+        if (leadDetails.getName() != null) {
+            lead.setName(leadDetails.getName());
+        }
+        if (leadDetails.getEmail() != null) {
+            lead.setEmail(leadDetails.getEmail());
+        }
+        if (leadDetails.getPhone() != null) {
+            lead.setPhone(leadDetails.getPhone());
+        }
+        if (leadDetails.getCity() != null) {
+            lead.setCity(leadDetails.getCity());
+        }
+        if (leadDetails.getService() != null) {
+            lead.setService(leadDetails.getService());
+        }
+        if (leadDetails.getBudget() != null) {
+            lead.setBudget(leadDetails.getBudget());
+        }
+        if (leadDetails.getStatus() != null) {
+            lead.setStatus(leadDetails.getStatus());
+        }
+        if (leadDetails.getSource() != null) {
+            lead.setSource(leadDetails.getSource());
+        }
+        if (leadDetails.getNotes() != null) {
+            lead.setNotes(leadDetails.getNotes());
+        }
+        
         lead.setUpdatedAt(LocalDateTime.now());
         return leadRepository.save(lead);
     }

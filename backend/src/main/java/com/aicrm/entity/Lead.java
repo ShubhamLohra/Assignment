@@ -72,7 +72,7 @@ public class Lead {
     
     // Enums
     public enum LeadStatus {
-        NEW, CONTACTED, QUALIFIED, LOST
+        NEW, CONTACTED, QUALIFIED, PROPOSAL, NEGOTIATION, CLOSED_WON, LOST
     }
     
     public enum LeadSource {

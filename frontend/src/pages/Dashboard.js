@@ -19,11 +19,177 @@ const Dashboard = () => {
   const [servicesLoading, setServicesLoading] = useState(true); // Add services loading state
   const [successMessage, setSuccessMessage] = useState(''); // Add success message state
 
+  // Add CSS for consistent dropdown styling
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Force consistent dropdown styling across all browsers */
+      select {
+        background-size: 12px auto !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        box-sizing: border-box !important;
+      }
+      
+      /* Specific styling for service dropdown */
+      select[name="service"] {
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        max-height: 48px !important;
+        line-height: 1.5 !important;
+        padding: 12px 16px !important;
+        box-sizing: border-box !important;
+      }
+      
+      /* Ensure all options have exactly the same size */
+      select option {
+        padding: 12px 16px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        max-height: 40px !important;
+        line-height: 16px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        display: block !important;
+        box-sizing: border-box !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        background-color: white !important;
+        color: #374151 !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+      }
+      
+      /* Service dropdown specific option styling */
+      select[name="service"] option {
+        padding: 12px 16px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        max-height: 40px !important;
+        line-height: 16px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        display: block !important;
+        box-sizing: border-box !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        background-color: white !important;
+        color: #374151 !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+      }
+      
+      /* Remove borders from last option */
+      select option:last-child {
+        border-bottom: none !important;
+      }
+      
+      /* Hover state for options */
+      select option:hover {
+        background-color: #f3f4f6 !important;
+        color: #1f2937 !important;
+      }
+      
+      /* Selected/focused option state */
+      select option:checked,
+      select option:selected,
+      select:focus option:checked {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        color: white !important;
+        font-weight: 600 !important;
+      }
+      
+      /* Disabled options */
+      select option:disabled {
+        background-color: #f9fafb !important;
+        color: #9ca3af !important;
+        cursor: not-allowed !important;
+      }
+      
+      /* Ensure consistent spacing in dropdown */
+      select optgroup {
+        padding: 8px 0 !important;
+      }
+      
+      /* Override any browser-specific styling */
+      select::-ms-expand {
+        display: none !important;
+      }
+      
+      /* Firefox specific fixes */
+      @-moz-document url-prefix() {
+        select[name="service"] {
+          height: 48px !important;
+          min-height: 48px !important;
+          max-height: 48px !important;
+        }
+        select option {
+          padding: 12px 16px !important;
+          height: 40px !important;
+          min-height: 40px !important;
+        }
+        select[name="service"] option {
+          padding: 12px 16px !important;
+          height: 40px !important;
+          min-height: 40px !important;
+        }
+      }
+      
+      /* Webkit specific fixes */
+      select::-webkit-listbox {
+        padding: 8px 0 !important;
+      }
+      
+      select::-webkit-option {
+        padding: 12px 16px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        line-height: 16px !important;
+      }
+      
+      /* Additional webkit fixes for service dropdown */
+      select[name="service"]::-webkit-option {
+        padding: 12px 16px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        line-height: 16px !important;
+      }
+      
+      /* Ensure input fields and select have consistent styling */
+      input[type="text"], input[type="email"], input[type="tel"], input[type="number"], select {
+        height: 48px !important;
+        min-height: 48px !important;
+        max-height: 48px !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+        box-sizing: border-box !important;
+        border-radius: 8px !important;
+        border: 1px solid #d1d5db !important;
+        transition: all 0.2s ease !important;
+      }
+      
+      /* Focus states for consistency */
+      input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, input[type="number"]:focus, select:focus {
+        outline: none !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   const [stats, setStats] = useState([
     { title: 'Total Leads', value: '0', color: 'bg-blue-500' },
-    { title: 'Active Deals', value: '0', color: 'bg-green-500' },
+    { title: 'Qualified Leads', value: '0', color: 'bg-green-500' },
     { title: 'Total Revenue', value: '₹0', color: 'bg-purple-500' },
-    { title: 'Conversion Rate', value: '0%', color: 'bg-orange-500' },
+    { title: 'Revenue in Pipeline', value: '₹0', color: 'bg-orange-500' },
+    { title: 'Conversion Rate', value: '0%', color: 'bg-red-500' },
   ]);
 
   const [recentLeads, setRecentLeads] = useState([]);
@@ -50,13 +216,27 @@ const Dashboard = () => {
       // In the future, you can add a dedicated stats endpoint
       const leads = await apiService.getLeads();
       const totalLeads = leads.length;
-      const qualifiedLeads = leads.filter(lead => lead.status === 'QUALIFIED').length;
+      const qualifiedLeads = leads.filter(lead => lead.status === 'QUALIFIED');
+      const qualifiedLeadsCount = qualifiedLeads.length;
+      
+      // Calculate revenue from qualified leads only
+      const totalRevenue = qualifiedLeads.reduce((sum, lead) => {
+        return sum + (lead.budget ? parseFloat(lead.budget) : 0);
+      }, 0);
+      
+      // Calculate revenue in pipeline (all leads excluding qualified)
+      const pipelineRevenue = leads
+        .filter(lead => lead.status !== 'QUALIFIED')
+        .reduce((sum, lead) => {
+          return sum + (lead.budget ? parseFloat(lead.budget) : 0);
+        }, 0);
       
       setStats([
         { title: 'Total Leads', value: totalLeads.toString(), color: 'bg-blue-500' },
-        { title: 'Active Deals', value: qualifiedLeads.toString(), color: 'bg-green-500' },
-        { title: 'Total Revenue', value: '₹' + (totalLeads * 50000).toLocaleString(), color: 'bg-purple-500' },
-        { title: 'Conversion Rate', value: totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) + '%' : '0%', color: 'bg-orange-500' },
+        { title: 'Qualified Leads', value: qualifiedLeadsCount.toString(), color: 'bg-green-500' },
+        { title: 'Total Revenue', value: '₹' + totalRevenue.toLocaleString(), color: 'bg-purple-500' },
+        { title: 'In Pipeline', value: '₹' + pipelineRevenue.toLocaleString(), color: 'bg-orange-500' },
+        { title: 'Conversion Rate', value: totalLeads > 0 ? Math.round((qualifiedLeadsCount / totalLeads) * 100) + '%' : '0%', color: 'bg-red-500' },
       ]);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -241,7 +421,7 @@ const Dashboard = () => {
                     className="inline-flex text-green-400 hover:text-green-600"
                   >
                     <span className="sr-only">Close</span>
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </button>
@@ -249,57 +429,54 @@ const Dashboard = () => {
               </div>
             </div>
           )}
-          
-          {/* Debug Tools */}
-          <div className="mt-4 flex space-x-2">
-            <button
-              type="button"
-              onClick={fetchServices}
-              className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border"
-            >
-              🔄 Refresh Services
-            </button>
-            <button
-              type="button"
-              onClick={() => console.log('Current services state:', services)}
-              className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border"
-            >
-              📊 Log Services
-            </button>
-          </div>
         </div>
 
-                       {/* Stats Grid */}
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                 {loading ? (
-                   // Loading skeleton
-                   Array.from({ length: 4 }).map((_, index) => (
-                     <div key={index} className="card animate-pulse">
-                       <div className="flex items-center justify-between">
-                         <div>
-                           <div className="h-4 bg-gray-300 rounded w-24 mb-2"></div>
-                           <div className="h-8 bg-gray-300 rounded w-16"></div>
-                         </div>
-                         <div className="w-12 h-12 bg-gray-300 rounded-lg"></div>
-                       </div>
-                     </div>
-                   ))
-                 ) : (
-                   stats.map((stat, index) => (
-                     <div key={index} className="card">
-                       <div className="flex items-center justify-between">
-                         <div>
-                           <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                           <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                         </div>
-                         <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}>
-                           <span className="text-white font-bold text-lg">📊</span>
-                         </div>
-                       </div>
-                     </div>
-                   ))
-                 )}
-               </div>
+                {/* Stats Grid */}
+                <div className="flex flex-wrap gap-4">
+                  {loading ? (
+                    // Loading skeleton
+                    Array.from({ length: 5 }).map((_, index) => (
+                      <div key={index} className="card animate-pulse flex-1 min-w-[200px]">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="h-3 bg-gray-300 rounded w-20 mb-2"></div>
+                            <div className="h-6 bg-gray-300 rounded w-12"></div>
+                          </div>
+                          <div className="w-8 h-8 bg-gray-300 rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    stats.map((stat, index) => (
+                      <div key={index} className="card flex-1 min-w-[200px]">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-medium text-gray-600">{stat.title}</p>
+                            <p className="text-lg font-bold text-gray-900">{stat.value}</p>
+                          </div>
+                          <div className={`w-8 h-8 ${stat.color} rounded-lg flex items-center justify-center relative`}>
+                            {/* Special handling for conversion rate card */}
+                            {stat.title === 'Conversion Rate' ? (
+                              <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                                </svg>
+                              </div>
+                            ) : (
+                              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
 
                        {/* Recent Leads */}
                <div className="card">
@@ -332,9 +509,9 @@ const Dashboard = () => {
                            <div>
                              <p className="font-medium text-gray-900">{lead.name || 'Unknown'}</p>
                              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                               <span>{lead.service?.name || lead.service || 'N/A'}</span>
+                               <span>{lead.serviceName || (lead.serviceId ? 'Service ID: ' + lead.serviceId : 'No service selected')}</span>
                                <span>•</span>
-                               <span>{lead.city || 'N/A'}</span>
+                               <span>{lead.city || 'No city'}</span>
                              </div>
                            </div>
                          </div>
@@ -362,7 +539,7 @@ const Dashboard = () => {
               onClick={() => setShowAddLeadModal(true)}
               className="btn-primary px-8 py-3 text-lg"
             >
-              Add New Lead
+              Add New Deal
             </button>
           </div>
         </div>
@@ -370,8 +547,8 @@ const Dashboard = () => {
 
       {/* Add New Lead Modal - Production Ready */}
       {showAddLeadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-5">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh]">
             {/* Header */}
             <div className="sticky top-0 bg-white px-8 py-6 border-b border-gray-200 rounded-t-2xl">
               <div className="flex items-center justify-between">
@@ -380,8 +557,8 @@ const Dashboard = () => {
                     <span className="text-white font-bold text-xl">+</span>
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">Add New Lead</h3>
-                    <p className="text-gray-500 text-sm">Fill in the details below to create a new lead</p>
+                    <h3 className="text-2xl font-bold text-gray-900">Add New Deal</h3>
+                    <p className="text-gray-500 text-sm">Fill in the details below to create a new deal</p>
                   </div>
                 </div>
                 <button
@@ -414,6 +591,15 @@ const Dashboard = () => {
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
                       errors.name ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
                     }`}
+                    style={{
+                      height: '48px',
+                      minHeight: '48px',
+                      maxHeight: '48px',
+                      padding: '12px 16px',
+                      fontSize: '14px',
+                      lineHeight: '1.5',
+                      boxSizing: 'border-box'
+                    }}
                   />
                   {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                 </div>
@@ -431,6 +617,15 @@ const Dashboard = () => {
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
                       errors.email ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
                     }`}
+                    style={{
+                      height: '48px',
+                      minHeight: '48px',
+                      maxHeight: '48px',
+                      padding: '12px 16px',
+                      fontSize: '14px',
+                      lineHeight: '1.5',
+                      boxSizing: 'border-box'
+                    }}
                   />
                   {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                 </div>
@@ -451,6 +646,15 @@ const Dashboard = () => {
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
                       errors.phone ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
                     }`}
+                    style={{
+                      height: '48px',
+                      minHeight: '48px',
+                      maxHeight: '48px',
+                      padding: '12px 16px',
+                      fontSize: '14px',
+                      lineHeight: '1.5',
+                      boxSizing: 'border-box'
+                    }}
                   />
                   {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
                 </div>
@@ -479,8 +683,25 @@ const Dashboard = () => {
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
                       errors.service ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
                     } ${servicesLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    style={{ 
+                      height: '48px',
+                      minHeight: '48px',
+                      maxHeight: '48px',
+                      appearance: 'none',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.1c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22/%3E%3C/svg%3E")',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 12px center',
+                      backgroundSize: '12px auto',
+                      paddingRight: '40px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      lineHeight: '1.5',
+                      boxSizing: 'border-box'
+                    }}
                   >
-                    <option value="">
+                    <option value="" className="py-2">
                       {servicesLoading ? '🔄 Loading services...' : 'Select Service'}
                     </option>
                     {servicesLoading ? (
@@ -489,7 +710,9 @@ const Dashboard = () => {
                       <option value="" disabled>No services available</option>
                     ) : (
                       services.map(service => (
-                        <option key={service.id} value={service.id}>{service.name}</option>
+                        <option key={service.id} value={service.id}>
+                          {service.name}
+                        </option>
                       ))
                     )}
                   </select>
@@ -499,11 +722,7 @@ const Dashboard = () => {
                       ⚠️ No services available. Please add services in the backend first.
                     </p>
                   )}
-                  {!errors.service && services.length > 0 && (
-                    <p className="text-xs text-gray-400 italic">
-                      Select the service this lead is interested in
-                    </p>
-                  )}
+                  
                 </div>
               </div>
               
@@ -523,6 +742,15 @@ const Dashboard = () => {
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
                       errors.city ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
                     }`}
+                    style={{
+                      height: '48px',
+                      minHeight: '48px',
+                      maxHeight: '48px',
+                      padding: '12px 16px',
+                      fontSize: '14px',
+                      lineHeight: '1.5',
+                      boxSizing: 'border-box'
+                    }}
                   />
                   {errors.city && <p className="text-red-500 text-sm">{errors.city}</p>}
                 </div>
@@ -532,7 +760,6 @@ const Dashboard = () => {
                     Budget (₹)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm leading-none">₹</span>
                     <input
                       type="number"
                       name="budget"
@@ -543,6 +770,15 @@ const Dashboard = () => {
                       className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
                         errors.budget ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
                       }`}
+                      style={{
+                        height: '48px',
+                        minHeight: '48px',
+                        maxHeight: '48px',
+                        padding: '12px 16px 12px 32px',
+                        fontSize: '14px',
+                        lineHeight: '1.5',
+                        boxSizing: 'border-box'
+                      }}
                     />
                   </div>
                   {errors.budget && <p className="text-red-500 text-sm">{errors.budget}</p>}
@@ -577,7 +813,7 @@ const Dashboard = () => {
                   ) : services.length === 0 ? (
                     'No Services Available'
                   ) : (
-                    'Add Lead'
+                    'Add Deal'
                   )}
                 </button>
               </div>

@@ -6,9 +6,9 @@ INSERT INTO services (id, name, description, is_active, created_at, updated_at) 
 (4, 'Wedding Planning', 'Full wedding planning service', TRUE, NOW(), NOW());
 
 -- Sample Users
-INSERT INTO users (id, username, email, password, role, created_at, updated_at) VALUES
-(1, 'admin', 'admin@brideside.com', 'admin123', 'ADMIN', NOW(), NOW()),
-(2, 'manager', 'manager@brideside.com', 'manager123', 'MANAGER', NOW(), NOW());
+INSERT INTO users (id, username, email, password, full_name, role, is_active, created_at, updated_at) VALUES
+(1, 'admin', 'admin@brideside.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDa', 'System Administrator', 'ADMIN', TRUE, NOW(), NOW()),
+(2, 'manager', 'manager@brideside.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDa', 'Manager User', 'MANAGER', TRUE, NOW(), NOW());
 
 -- Sample Leads
 INSERT INTO leads (id, name, email, phone, city, service_id, budget, status, source, created_at, updated_at) VALUES
