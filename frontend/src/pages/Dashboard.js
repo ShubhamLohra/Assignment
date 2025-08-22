@@ -7,7 +7,7 @@ const Dashboard = () => {
     name: '',
     email: '',
     phone: '',
-    service: '',
+    service: '',        // This will store service ID
     city: '',
     budget: '',
     status: 'NEW'
@@ -15,6 +15,9 @@ const Dashboard = () => {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [services, setServices] = useState([]); // Add services state
+  const [servicesLoading, setServicesLoading] = useState(true); // Add services loading state
+  const [successMessage, setSuccessMessage] = useState(''); // Add success message state
 
   const [stats, setStats] = useState([
     { title: 'Total Leads', value: '0', color: 'bg-blue-500' },
@@ -27,6 +30,20 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   // API Functions
+  const fetchServices = async () => {
+    try {
+      setServicesLoading(true);
+      const data = await apiService.getServices();
+      console.log('Services loaded from backend:', data); // Debug log
+      setServices(data);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      setServices([]);
+    } finally {
+      setServicesLoading(false);
+    }
+  };
+
   const fetchDashboardStats = async () => {
     try {
       // For now, we'll calculate stats from leads data
@@ -71,7 +88,7 @@ const Dashboard = () => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchDashboardStats(), fetchRecentLeads()]);
+      await Promise.all([fetchDashboardStats(), fetchRecentLeads(), fetchServices()]);
       setLoading(false);
     };
     loadData();
@@ -84,8 +101,16 @@ const Dashboard = () => {
       newErrors.name = 'Name is required';
     }
     
-    if (!newLead.service) {
+    if (!newLead.service || newLead.service === '') {
       newErrors.service = 'Service is required';
+    } else if (isNaN(parseInt(newLead.service))) {
+      newErrors.service = 'Please select a valid service';
+    } else {
+      // Check if the selected service ID exists in available services
+      const serviceExists = services.some(service => service.id === parseInt(newLead.service));
+      if (!serviceExists) {
+        newErrors.service = 'Selected service is not available';
+      }
     }
     
     if (!newLead.city.trim()) {
@@ -134,13 +159,16 @@ const Dashboard = () => {
     setIsSubmitting(true);
     
     try {
-      // Create lead using real API
+      // Create lead using real API with proper service structure
       const leadData = {
         ...newLead,
+        service: { id: parseInt(newLead.service) }, // Convert to object with ID
         budget: newLead.budget ? parseFloat(newLead.budget) : null,
         status: 'NEW',
         source: 'WEBSITE'
       };
+      
+      console.log('Sending lead data to backend:', leadData); // Debug log
       
       await createLead(leadData);
       
@@ -156,12 +184,28 @@ const Dashboard = () => {
       });
       setErrors({});
       setShowAddLeadModal(false);
+      setSuccessMessage('Lead added successfully!');
       
-      // Show success message
-      alert('Lead added successfully!');
+      // Auto-clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000);
+      
     } catch (error) {
       console.error('Error adding lead:', error);
-      alert('Failed to add lead. Please try again.');
+      
+      // Show more specific error messages
+      let errorMessage = 'Failed to add lead. Please try again.';
+      
+      if (error.message && error.message.includes('Service with ID')) {
+        errorMessage = 'Invalid service selected. Please choose a valid service.';
+      } else if (error.message && error.message.includes('foreign key constraint')) {
+        errorMessage = 'Invalid service or user selected. Please check your selections.';
+      } else if (error.message && error.message.includes('400')) {
+        errorMessage = 'Invalid data provided. Please check all required fields.';
+      } else if (error.message && error.message.includes('500')) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -177,6 +221,52 @@ const Dashboard = () => {
           <p className="text-gray-600 mt-1">
             Welcome back! Here's what's happening with your CRM today.
           </p>
+          
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-green-800">{successMessage}</p>
+                </div>
+                <div className="ml-auto pl-3">
+                  <button
+                    type="button"
+                    onClick={() => setSuccessMessage('')}
+                    className="inline-flex text-green-400 hover:text-green-600"
+                  >
+                    <span className="sr-only">Close</span>
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Debug Tools */}
+          <div className="mt-4 flex space-x-2">
+            <button
+              type="button"
+              onClick={fetchServices}
+              className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border"
+            >
+              🔄 Refresh Services
+            </button>
+            <button
+              type="button"
+              onClick={() => console.log('Current services state:', services)}
+              className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border"
+            >
+              📊 Log Services
+            </button>
+          </div>
         </div>
 
                        {/* Stats Grid */}
@@ -310,7 +400,7 @@ const Dashboard = () => {
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
               {/* Row 1: Name & Email */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2">
+                <div className="flex flex-col space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
                     Full Name <span className="text-red-500">*</span>
                   </label>
@@ -321,14 +411,14 @@ const Dashboard = () => {
                     onChange={handleInputChange}
                     required
                     placeholder="Enter full name"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                      errors.name ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
+                      errors.name ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
                     }`}
                   />
                   {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                 </div>
                 
-                <div className="space-y-2">
+                <div className="flex flex-col space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
                     Email Address
                   </label>
@@ -338,8 +428,8 @@ const Dashboard = () => {
                     value={newLead.email}
                     onChange={handleInputChange}
                     placeholder="Enter email address"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                      errors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
+                      errors.email ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
                     }`}
                   />
                   {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
@@ -348,7 +438,7 @@ const Dashboard = () => {
               
               {/* Row 2: Phone & Service */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2">
+                <div className="flex flex-col space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
                     Phone Number
                   </label>
@@ -358,39 +448,68 @@ const Dashboard = () => {
                     value={newLead.phone}
                     onChange={handleInputChange}
                     placeholder="Enter phone number"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                      errors.phone ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
+                      errors.phone ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
                     }`}
                   />
                   {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Service <span className="text-red-500">*</span>
-                  </label>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Service <span className="text-red-500">*</span>
+                    </label>
+                    {!servicesLoading && services.length === 0 && (
+                      <button
+                        type="button"
+                        onClick={fetchServices}
+                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                      >
+                        🔄 Refresh Services
+                      </button>
+                    )}
+                  </div>
                   <select
                     name="service"
                     value={newLead.service}
                     onChange={handleInputChange}
                     required
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                      errors.service ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                    }`}
+                    disabled={servicesLoading}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
+                      errors.service ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
+                    } ${servicesLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    <option value="">Select Service</option>
-                    <option value="Makeup">Makeup</option>
-                    <option value="Photography">Photography</option>
-                    <option value="Decor">Decor</option>
-                    <option value="Planning">Planning</option>
+                    <option value="">
+                      {servicesLoading ? '🔄 Loading services...' : 'Select Service'}
+                    </option>
+                    {servicesLoading ? (
+                      <option value="" disabled>Loading services...</option>
+                    ) : services.length === 0 ? (
+                      <option value="" disabled>No services available</option>
+                    ) : (
+                      services.map(service => (
+                        <option key={service.id} value={service.id}>{service.name}</option>
+                      ))
+                    )}
                   </select>
                   {errors.service && <p className="text-red-500 text-sm">{errors.service}</p>}
+                  {!servicesLoading && services.length === 0 && (
+                    <p className="text-amber-600 text-sm">
+                      ⚠️ No services available. Please add services in the backend first.
+                    </p>
+                  )}
+                  {!errors.service && services.length > 0 && (
+                    <p className="text-xs text-gray-400 italic">
+                      Select the service this lead is interested in
+                    </p>
+                  )}
                 </div>
               </div>
               
               {/* Row 3: City & Budget */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2">
+                <div className="flex flex-col space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
                     City <span className="text-red-500">*</span>
                   </label>
@@ -401,19 +520,19 @@ const Dashboard = () => {
                     onChange={handleInputChange}
                     required
                     placeholder="Enter city"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                      errors.city ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
+                      errors.city ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
                     }`}
                   />
                   {errors.city && <p className="text-red-500 text-sm">{errors.city}</p>}
                 </div>
                 
-                <div className="space-y-2">
+                <div className="flex flex-col space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
                     Budget (₹)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm leading-none">₹</span>
                     <input
                       type="number"
                       name="budget"
@@ -421,8 +540,8 @@ const Dashboard = () => {
                       onChange={handleInputChange}
                       placeholder="Enter budget amount"
                       min="0"
-                      className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                        errors.budget ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                      className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-12 border-gray-300 ${
+                        errors.budget ? 'border-red-300 focus:ring-red-500' : 'hover:border-gray-400'
                       }`}
                     />
                   </div>
@@ -442,7 +561,7 @@ const Dashboard = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || servicesLoading || services.length === 0}
                   className="flex-1 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {isSubmitting ? (
@@ -450,12 +569,39 @@ const Dashboard = () => {
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       <span>Adding Lead...</span>
                     </div>
+                  ) : servicesLoading ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Loading Services...</span>
+                    </div>
+                  ) : services.length === 0 ? (
+                    'No Services Available'
                   ) : (
                     'Add Lead'
                   )}
                 </button>
               </div>
             </form>
+            
+            {/* Help message when no services */}
+            {!servicesLoading && services.length === 0 && (
+              <div className="px-8 pb-6">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-amber-800">
+                        <strong>No services available.</strong> Please add services in the backend first, or check if the backend is running.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

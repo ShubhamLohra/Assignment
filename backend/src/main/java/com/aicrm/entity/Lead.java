@@ -1,5 +1,8 @@
 package com.aicrm.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,26 +13,33 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "leads")
+@Schema(description = "Lead entity representing potential customers in the CRM system")
 public class Lead {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(description = "Unique identifier for the lead", example = "1")
     private Long id;
     
     @Column(name = "name", nullable = false)
+    @Schema(description = "Full name of the lead", example = "John Doe", required = true)
     private String name;
     
     @Column(name = "email")
+    @Schema(description = "Email address of the lead", example = "john.doe@example.com")
     private String email;
     
     @Column(name = "phone")
+    @Schema(description = "Phone number of the lead", example = "+1234567890")
     private String phone;
     
     @Column(name = "city")
+    @Schema(description = "City where the lead is located", example = "New York")
     private String city;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Service service;
     
     @Column(name = "budget", precision = 10, scale = 2)
@@ -51,6 +61,7 @@ public class Lead {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User assignedTo;
     
     @Column(name = "created_at")

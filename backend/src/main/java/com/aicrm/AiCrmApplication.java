@@ -25,5 +25,7 @@ public class AiCrmApplication extends SpringBootServletInitializer {
         System.out.println("🚀 AI CRM System is running!");
         System.out.println("📱 Backend API: http://localhost:8080/api");
         System.out.println("🔗 Health Check: http://localhost:8080/api/health");
+        System.out.println("📚 Swagger UI: http://localhost:8080/swagger-ui.html");
+        System.out.println("📖 API Docs: http://localhost:8080/api-docs");
     }
 }

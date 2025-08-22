@@ -61,6 +61,11 @@ class ApiService {
     });
   }
 
+  // Service API methods
+  async getServices() {
+    return this.request('/services');
+  }
+
   // Deal API methods
   async getDeals() {
     return this.request('/deals');

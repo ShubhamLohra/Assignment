@@ -1,9 +1,9 @@
 -- Sample Services
-INSERT INTO services (id, name, description, price, category, created_at, updated_at) VALUES
-(1, 'Bridal Makeup', 'Complete bridal makeup package', 15000.00, 'MAKEUP', NOW(), NOW()),
-(2, 'Wedding Photography', 'Professional wedding photography', 25000.00, 'PHOTOGRAPHY', NOW(), NOW()),
-(3, 'Wedding Decoration', 'Complete wedding decoration', 50000.00, 'DECOR', NOW(), NOW()),
-(4, 'Wedding Planning', 'Full wedding planning service', 100000.00, 'PLANNING', NOW(), NOW());
+INSERT INTO services (id, name, description, is_active, created_at, updated_at) VALUES
+(1, 'Bridal Makeup', 'Complete bridal makeup package', TRUE, NOW(), NOW()),
+(2, 'Wedding Photography', 'Professional wedding photography', TRUE, NOW(), NOW()),
+(3, 'Wedding Decoration', 'Complete wedding decoration', TRUE, NOW(), NOW()),
+(4, 'Wedding Planning', 'Full wedding planning service', TRUE, NOW(), NOW());
 
 -- Sample Users
 INSERT INTO users (id, username, email, password, role, created_at, updated_at) VALUES
